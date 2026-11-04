@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import ThemeProvider from "@/components/layout/ThemeProvider"
+import AuthProvider from "@/components/layout/AuthProvider"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -14,12 +15,14 @@ export const metadata: Metadata = {
   description: "Track your personal finances, budgets, savings goals, and spending habits with MoneyTrack.",
 }
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col font-[var(--font-inter)] antialiased">
         <ThemeProvider>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

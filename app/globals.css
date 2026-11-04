@@ -5,9 +5,9 @@
 
 @layer base {
   :root {
-    --color-primary: #10B981;
-    --color-primary-dark: #059669;
-    --color-navy: #0F172A;
+    --color-primary: #2563EB;
+    --color-primary-dark: #1D4ED8;
+    --color-navy: #0B1224;
     --color-white: #FFFFFF;
   }
 
@@ -20,7 +20,9 @@
   }
 
   .dark body {
-    @apply bg-slate-950 text-white;
+    background-color: #0B1224;
+    color: #F8FAFC;
+    @apply antialiased;
   }
 }
 
@@ -32,20 +34,29 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-slate-100 dark:bg-slate-800;
+    @apply bg-slate-100;
+  }
+  .dark ::-webkit-scrollbar-track {
+    background-color: #0B1224;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 dark:bg-slate-600 rounded-full;
+    @apply bg-slate-300 rounded-full;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: #263653;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-400 dark:bg-slate-500;
+    @apply bg-slate-400;
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background-color: #3B82F6;
   }
 
   /* Focus styles */
   *:focus-visible {
-    @apply outline-none ring-2 ring-emerald-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900;
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2 ring-offset-white dark:ring-offset-[#0B1224];
   }
 }
 

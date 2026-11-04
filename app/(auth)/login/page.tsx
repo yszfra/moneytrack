@@ -1,92 +1,147 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Wallet, Mail, Lock } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  })
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const supabase = createClient()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validateForm = () => {
+    if (!username) {
+      setError('Nama pengguna wajib diisi')
+      return false
+    }
+    if (username.length < 3) {
+      setError('Nama pengguna minimal 3 karakter')
+      return false
+    }
+    if (!password) {
+      setError('Kata sandi wajib diisi')
+      return false
+    }
+    if (password.length < 6) {
+      setError('Kata sandi minimal 6 karakter')
+      return false
+    }
+    return true
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Login attempt:', formData)
-    // TODO: Implement actual Supabase authentication
+    setError(null)
+
+    if (!validateForm()) {
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const email = `${username}@moneytrack.local`
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Nama pengguna atau kata sandi salah')
+        } else {
+          setError(error.message)
+        }
+        setLoading(false)
+        return
+      }
+
+      if (data.user) {
+        router.push('/dashboard')
+        router.refresh()
+      }
+    } catch (err) {
+      setError('Terjadi kesalahan yang tidak terduga')
+      setLoading(false)
+    }
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center space-y-2">
-        <div className="flex justify-center mb-2">
-          <div className="p-3 bg-emerald-600 rounded-xl">
-            <Wallet className="h-8 w-8" />
-          </div>
-        </div>
-        <CardTitle className="text-2xl">MoneyTrack</CardTitle>
-        <p className="text-sm text-gray-400">Masuk ke akun Anda</p>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                id="email"
-                type="email"
-                placeholder="nama@example.com"
-                className="pl-10"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                className="pl-10"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="rounded border-gray-700" />
-              <span className="text-gray-400">Ingat saya</span>
-            </label>
-            <Link href="/forgot-password" className="text-emerald-500 hover:text-emerald-400">
-              Lupa password?
-            </Link>
-          </div>
-
-          <Button type="submit" className="w-full" size="lg">
-            Masuk
-          </Button>
-
-          <div className="text-center text-sm text-gray-400">
+    <div className="min-h-screen flex items-center justify-center bg-[#F5F8FF] dark:bg-[#0B1224] py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-[#101B3D] dark:text-[#F8FAFC]">
+            Masuk ke Akun Anda
+          </h2>
+          <p className="mt-2 text-center text-sm text-[#64748B] dark:text-slate-400">
             Belum punya akun?{' '}
-            <Link href="/register" className="text-emerald-500 hover:text-emerald-400 font-medium">
-              Daftar
+            <Link href="/register" className="font-medium text-[#2563EB] hover:text-[#3B82F6]">
+              Daftar di sini
             </Link>
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          {error && (
+            <div className="rounded-xl bg-red-50 dark:bg-red-900/30 p-4 border border-red-200 dark:border-red-800">
+              <div className="flex">
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800 dark:text-red-200">{error}</h3>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="rounded-xl border border-[#E2E8F0] dark:border-[#263653] overflow-hidden shadow-sm bg-white dark:bg-[#111C35]">
+            <div>
+              <label htmlFor="username" className="sr-only">
+                Nama pengguna
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                required
+                className="appearance-none relative block w-full px-4 py-3 border-0 placeholder-[#64748B] dark:placeholder-slate-500 text-[#101B3D] dark:text-[#F8FAFC] rounded-none focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent sm:text-sm bg-transparent"
+                placeholder="Nama pengguna"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+            <div className="border-t border-[#E2E8F0] dark:border-[#263653]">
+              <label htmlFor="password" className="sr-only">
+                Kata sandi
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="appearance-none relative block w-full px-4 py-3 border-0 placeholder-[#64748B] dark:placeholder-slate-500 text-[#101B3D] dark:text-[#F8FAFC] rounded-none focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent sm:text-sm bg-transparent"
+                placeholder="Kata sandi"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2563EB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? 'Memproses...' : 'Masuk'}
+            </button>
           </div>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

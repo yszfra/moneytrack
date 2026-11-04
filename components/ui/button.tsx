@@ -4,7 +4,7 @@ import { ButtonHTMLAttributes, forwardRef } from 'react'
 import { cn } from '@/lib/utils'
 
 const variants = {
-  primary: 'bg-emerald-500 text-white hover:bg-emerald-600 active:bg-emerald-700',
+  primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
   secondary: 'bg-slate-200 text-slate-900 hover:bg-slate-300 active:bg-slate-400 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600',
   danger: 'bg-red-500 text-white hover:bg-red-600 active:bg-red-700',
   destructive: 'bg-red-500 text-white hover:bg-red-600 active:bg-red-700',

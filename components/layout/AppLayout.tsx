@@ -11,10 +11,10 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <div className="min-h-screen bg-[#F5F8FF] dark:bg-[#0B1224] text-slate-900 dark:text-[#F8FAFC]">
         <Sidebar />
         <main className="lg:ml-64 min-h-screen">
-          <div className="p-4 lg:p-8 pt-20 lg:pt-8">
+          <div className="p-4 lg:p-8 pt-18 lg:pt-8 pb-24 lg:pb-8">
             {children}
           </div>
         </main>

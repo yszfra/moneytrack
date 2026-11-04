@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/components/layout/AuthProvider'
 import { LoadingSpinner } from '@/components/ui/Loading'
 import { formatRupiah, formatDate } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -15,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Plus, Edit, Trash2, Search, ChevronLeft, ChevronRight, InboxIcon } from 'lucide-react'
+import { getCategories, Category } from '@/lib/categories'
 
 type TransactionType = 'income' | 'expense'
 type Transaction = {
@@ -26,20 +28,6 @@ type Transaction = {
   amount: number
   date: string
 }
-
-const CATEGORIES = [
-  { id: 'makanan', name: 'Makanan', icon: '🍔' },
-  { id: 'transportasi', name: 'Transportasi', icon: '🚗' },
-  { id: 'belanja', name: 'Belanja', icon: '🛍️' },
-  { id: 'hiburan', name: 'Hiburan', icon: '🎬' },
-  { id: 'kesehatan', name: 'Kesehatan', icon: '🏥' },
-  { id: 'pendidikan', name: 'Pendidikan', icon: '📚' },
-  { id: 'tagihan', name: 'Tagihan', icon: '🧾' },
-  { id: 'gaji', name: 'Gaji', icon: '💰' },
-  { id: 'bisnis', name: 'Bisnis', icon: '💼' },
-  { id: 'investasi', name: 'Investasi', icon: '📈' },
-  { id: 'lainnya', name: 'Lainnya', icon: '📦' },
-]
 
 const INITIAL_TRANSACTIONS: Transaction[] = [
   { id: '1', type: 'expense', category_id: 'makanan', category_name: 'Makanan', description: 'Makan siang di warung', amount: 35000, date: '2026-11-01' },
@@ -57,6 +45,8 @@ const INITIAL_TRANSACTIONS: Transaction[] = [
 ]
 
 export default function TransactionsPage() {
+  const { user } = useAuth()
+  const [categories, setCategories] = useState<Category[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS)
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all')
@@ -77,9 +67,25 @@ export default function TransactionsPage() {
     setInitialDate(new Date().toISOString().split('T')[0])
   }, [])
 
+  useEffect(() => {
+    if (!user) return
+    const loadCategories = async () => {
+      try {
+        const data = await getCategories(user.id)
+        setCategories(data)
+        if (data.length > 0) {
+          setForm(prev => ({ ...prev, category_id: prev.category_id === 'makanan' ? data[0].id : prev.category_id }))
+        }
+      } catch (err) {
+        console.error('Failed to load categories:', err)
+      }
+    }
+    loadCategories()
+  }, [user])
+
   const [form, setForm] = useState({
     type: 'expense' as TransactionType,
-    category_id: 'makanan',
+    category_id: '',
     description: '',
     amount: '',
     date: '',
@@ -122,7 +128,7 @@ export default function TransactionsPage() {
                 ...t,
                 type: form.type,
                 category_id: form.category_id,
-                category_name: CATEGORIES.find((c) => c.id === form.category_id)?.name || '',
+                category_name: categories.find((c) => c.id === form.category_id)?.name || '',
                 description: form.description,
                 amount,
                 date: form.date,
@@ -135,7 +141,7 @@ export default function TransactionsPage() {
         id: Date.now().toString(),
         type: form.type,
         category_id: form.category_id,
-        category_name: CATEGORIES.find((c) => c.id === form.category_id)?.name || '',
+        category_name: categories.find((c) => c.id === form.category_id)?.name || '',
         description: form.description,
         amount,
         date: form.date,
@@ -146,7 +152,7 @@ export default function TransactionsPage() {
     setIsSubmitting(false)
     setForm({
       type: 'expense',
-      category_id: 'makanan',
+      category_id: categories.length > 0 ? categories[0].id : '',
       description: '',
       amount: '',
       date: new Date().toISOString().split('T')[0],
@@ -169,7 +175,7 @@ export default function TransactionsPage() {
     setEditingTransaction(null)
     setForm({
       type: 'expense',
-      category_id: 'makanan',
+      category_id: categories.length > 0 ? categories[0].id : '',
       description: '',
       amount: '',
       date: new Date().toISOString().split('T')[0],
@@ -190,12 +196,12 @@ export default function TransactionsPage() {
   }
 
   const getCategoryIcon = (id: string) => {
-    const cat = CATEGORIES.find((c) => c.id === id)
+    const cat = categories.find((c) => c.id === id)
     return cat?.icon || '📦'
   }
 
   const getCategoryName = (id: string) => {
-    const cat = CATEGORIES.find((c) => c.id === id)
+    const cat = categories.find((c) => c.id === id)
     return cat?.name || id
   }
 
@@ -237,7 +243,7 @@ export default function TransactionsPage() {
               className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="all">Semua Kategori</option>
-              {CATEGORIES.map((cat) => (
+              {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
                 </option>
@@ -357,7 +363,7 @@ export default function TransactionsPage() {
                 value={form.category_id}
                 onChange={(e) => setForm({ ...form, category_id: e.target.value })}
               >
-                {CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.icon} {cat.name}
                   </option>

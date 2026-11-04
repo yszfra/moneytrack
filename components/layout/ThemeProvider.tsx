@@ -9,14 +9,15 @@ interface ThemeContextType {
   toggleTheme: () => void
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+const defaultContext: ThemeContextType = {
+  theme: 'light',
+  toggleTheme: () => {},
+}
+
+const ThemeContext = createContext<ThemeContextType>(defaultContext)
 
 export function useTheme() {
-  const context = useContext(ThemeContext)
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider')
-  }
-  return context
+  return useContext(ThemeContext)
 }
 
 interface ThemeProviderProps {
@@ -49,10 +50,6 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
-  }
-
-  if (!mounted) {
-    return <>{children}</>
   }
 
   return (

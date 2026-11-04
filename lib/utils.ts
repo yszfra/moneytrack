@@ -5,52 +5,42 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatRupiah(amount: number): string {
+export function formatCurrency(amount: number, currency: string = 'IDR'): string {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
-    currency: 'IDR',
+    currency,
     minimumFractionDigits: 0,
   }).format(amount)
 }
 
-export function formatDate(date: string | Date): string {
-  const d = new Date(date)
+// Alias for backward compatibility
+export const formatRupiah = formatCurrency
+
+export function formatDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date
   return new Intl.DateTimeFormat('id-ID', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
     day: 'numeric',
+    month: 'long',
+    year: 'numeric',
   }).format(d)
 }
 
-export function getMonthYear(): string {
-  return new Date().toLocaleDateString('id-ID', {
-    year: 'numeric',
-    month: 'long',
-  })
+export function formatDateInput(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toISOString().split('T')[0]
 }
 
-export function getFirstDayOfMonth(): string {
-  const d = new Date()
-  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0]
-}
+export const paymentMethods = [
+  { value: 'cash', label: 'Cash' },
+  { value: 'bank_transfer', label: 'Bank Transfer' },
+  { value: 'e_wallet', label: 'E-Wallet' },
+  { value: 'debit_card', label: 'Kartu Debit' },
+  { value: 'credit_card', label: 'Kartu Kredit' },
+] as const
 
-export function getLastDayOfMonth(): string {
-  const d = new Date()
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0]
-}
+export type PaymentMethod = typeof paymentMethods[number]['value']
 
-export function getCategoriesSum(transactions: any[], type: 'income' | 'expense'): number {
-  return transactions
-    .filter((t) => t.type === type)
-    .reduce((sum, t) => sum + t.amount, 0)
-}
-
-export function getCategoriesExpenses(transactions: any[]): { [key: string]: number } {
-  return transactions
-    .filter((t) => t.type === 'expense')
-    .reduce((acc, t) => {
-      acc[t.category_id] = (acc[t.category_id] || 0) + t.amount
-      return acc
-    }, {} as { [key: string]: number })
+export function getPaymentMethodLabel(method: PaymentMethod | null): string {
+  const found = paymentMethods.find(m => m.value === method)
+  return found?.label || 'Tidak diketahui'
 }

@@ -38,7 +38,7 @@ const icons = {
 }
 
 const styles = {
-  success: 'bg-emerald-500 text-white',
+  success: 'bg-blue-600 text-white',
   error: 'bg-red-500 text-white',
   warning: 'bg-amber-500 text-white',
 }
